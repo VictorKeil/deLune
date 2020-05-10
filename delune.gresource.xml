@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/home/victor/workspace/c/delune">
+    <file preprocess="xml-stripblanks">ui/delune-window.ui</file>
+    <file preprocess="xml-stripblanks">ui/delune-signal-chooser.ui</file>
+    <file preprocess="xml-stripblanks">ui/delune-signal-component.ui</file>
+  </gresource>
+</gresources>
+
