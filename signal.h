@@ -41,7 +41,7 @@ struct _Signal {
 
   char *name;
 
-  struct _Signal *input_signal;
+  Signal **input_signals;
 
   float (*function)(struct _Signal*, float);
   float value;
@@ -108,9 +108,6 @@ void signal_set_amplitude(WaveSignal *signal, Signal *amplitude, bool no_unref);
 
 Signal *signal_get_amplitude(WaveSignal *signal);
 
-void signal_mixer_add_input_signal(Mixer *mixer, Signal *signal);
-
-/* float signal_get_frequency_value(WaveSignal *signal, float time_seconds); */
 
 ConstSignal *signal_new_const_signal(SignalTable *table, float value);
 
@@ -121,6 +118,10 @@ WaveSignal *signal_new_sine_wave(SignalTable *table, float frequency, float ampl
 IntegralSignal *signal_new_integral_signal(SignalTable *table, float step, Signal *input_signal);
 
 Mixer *signal_new_mixer(SignalTable *table);
+
+void signal_mixer_add_input_signal(Mixer *mixer, Signal *signal);
+
+void signal_mixer_remove_input_signal(Mixer *mixer, Signal *signal);
 
 void signal_mixer_set_master_amplitude(Mixer *mixer, float amplitude);
 

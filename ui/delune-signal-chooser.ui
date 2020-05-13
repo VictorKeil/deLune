@@ -19,12 +19,9 @@
       </packing>
     </child>
     <child>
-      <object class="GtkComboBoxText" id="signal_curtain">
+      <object class="GtkComboBox" id="signal_curtain">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <items>
-          <item id="constant_value" translatable="yes">Constant Value</item>
-        </items>
       </object>
       <packing>
         <property name="expand">False</property>

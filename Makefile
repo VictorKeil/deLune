@@ -24,4 +24,5 @@ clean :
 	rm -f $(BUILT_SRC)
 	rm -f $(OBJS)
 	rm -f delune
+	rm -f *\~
 

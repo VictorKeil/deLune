@@ -9,6 +9,8 @@
 #define DELUNE_SIGNAL_COMPONENT_TYPE (delune_signal_component_get_type())
 G_DECLARE_FINAL_TYPE(DeluneSignalComponent, delune_signal_component, DELUNE, SIGNAL_COMPONENT, GtkBox);
 
-DeluneSignalComponent *delune_signal_component_new(DeluneApplication *app);
+DeluneSignalComponent *delune_signal_component_new(DeluneApplication *app, Signal *signal);
+
+void delune_signal_component_set_signal(DeluneSignalComponent *component, Signal *signal);
 
 #endif /* _DELUNE-SIGNAL-COMPONENT_H_ */

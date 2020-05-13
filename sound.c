@@ -57,6 +57,10 @@ static void write_callback(struct SoundIoOutStream *outstream,
   }
 }
 
+void sound_outstream_clear_buffer(Sound *sound) {
+  soundio_outstream_clear_buffer(sound->outstream);
+}
+
 Sound *sound_create() {
   int err;
   soundio = soundio_create();
@@ -106,16 +110,18 @@ Sound *sound_create() {
   Sound *sound;
   sound = calloc(1, sizeof(sound));
   sound->buffer_size = 256;
+  sound->outstream = outstream;
   outstream->userdata = sound;
+
+  sound->signal_table = signal_new_signal_table(outstream->sample_rate);
+  sound->master_out = signal_new_mixer(sound->signal_table);
+  sound->master_out->master_amplitude->value = .3;
+  signal_set_name(SIGNAL(sound->master_out), "master out");
 
   if ((err = soundio_outstream_start(outstream))) {
     fprintf(stderr, "unable to start device: %s\n", soundio_strerror(err));
     exit(1);
   }
-
-  sound->signal_table = signal_new_signal_table(outstream->sample_rate);
-  sound->master_out = signal_new_mixer(sound->signal_table);
-  signal_set_name(SIGNAL(sound->master_out), "master out");
 
   return sound;
 }
