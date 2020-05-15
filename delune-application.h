@@ -12,10 +12,10 @@ struct _DeluneApplication {
   GtkApplication base_instance;
 
   Sound *sound;
-  GtkListStore *master_out_signals;
   GtkAdjustment *master_amplitude_adjustment;
 
   GtkListStore *tracked_signals;
+  GtkListStore *master_out_signals;
 };
 
 DeluneApplication *delune_application_new (void);
@@ -30,7 +30,7 @@ void delune_signal_replace(DeluneApplication *app, Signal *old_signal, Signal *n
 
 Signal *delune_signal_new(DeluneApplication *app);
 
-void delune_signal_add_to_master_out(DeluneApplication *app, Signal *signal);
+void delune_signal_add_to_master_out(DeluneApplication *app, GtkTreePath *signal_path);
 
 void delune_signal_remove_from_master_out_depr(DeluneApplication *app, Signal *signal);
 

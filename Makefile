@@ -3,7 +3,7 @@ CFLAGS = $(shell pkg-config --cflags gtk+-3.0)
 LIBS = $(shell pkg-config --libs gtk+-3.0) -lm -lsoundio
 GLIB_COMPILE_RESOURCES = $(shell pkg-config --variable=glib_compile_resources gio-2.0)
 
-SRC = main.c delune-application.c delune-window.c ui.c delune-signal-component.c delune-signal-chooser.c signal.c sound.c utils.c
+SRC = main.c delune-application.c delune-window.c ui.c delune-signal-component.c delune-signal-chooser.c signal.c sound.c utils.c delune-mixer.c
 SRC_UI = ui/delune-window.ui ui/delune-signal-chooser.ui ui/delune-signal-component.ui
 BUILT_SRC = resources.c
 

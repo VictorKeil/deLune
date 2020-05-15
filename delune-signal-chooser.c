@@ -6,29 +6,7 @@
 #include "delune-signal-chooser.h"
 #include "utils.h"
 
-struct _DeluneSignalChooser {
-  GtkBox base_widget;
-
-  GtkWidget *label;
-  GtkWidget *signal_curtain;
-  GtkWidget *value_scale;
-
-  GtkListStore *tracked_signals;
-};
-
 G_DEFINE_TYPE(DeluneSignalChooser, delune_signal_chooser, GTK_TYPE_BOX);
-
-static void on_signal_changed(GtkWidget * curtain, gpointer button) {
-  const gchar *id = gtk_combo_box_get_active_id(GTK_COMBO_BOX(curtain));
-  bool visibility = false;
-  if (id)
-    visibility = strcmp(id, "constant_value") ? false : true;
-  gtk_widget_set_visible(GTK_WIDGET(button), visibility);
-}
-
-void delune_signal_chooser_set_label(DeluneSignalChooser *chooser, char *label) {
-  gtk_label_set_text(GTK_LABEL(chooser->label), label);
-}
 
 static gboolean print_node_func(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data) {
   Signal *signal;
@@ -36,6 +14,21 @@ static gboolean print_node_func(GtkTreeModel *model, GtkTreePath *path, GtkTreeI
   printf("name: %s\n", signal_get_name(signal));
 
   return FALSE;
+}
+
+static void on_signal_changed(GtkWidget * curtain, gpointer button) {
+  const gchar *id = gtk_combo_box_get_active_id(GTK_COMBO_BOX(curtain));
+  bool visibility = false;
+  if (id)
+    visibility = strcmp(id, "constant_value") ? false : true;
+  gtk_widget_set_visible(GTK_WIDGET(button), visibility);
+
+  GtkTreeModel *model;
+  model = gtk_combo_box_get_model(GTK_COMBO_BOX(curtain));
+}
+
+void delune_signal_chooser_set_label(DeluneSignalChooser *chooser, char *label) {
+  gtk_label_set_text(GTK_LABEL(chooser->label), label);
 }
 
 static void setup_signal_curtain(DeluneSignalChooser *chooser) {

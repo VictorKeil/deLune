@@ -33,26 +33,27 @@ struct _SignalTable {
 
 
 struct _Signal {
+  void (*destructor)(Signal*);
+
   SignalTable *table;
 
   int reference_count;
-  /* int references_len; */
-  /* Signal **references; */
 
   char *name;
 
+  int input_signals_size, input_signal_count;
   Signal **input_signals;
 
   float (*function)(struct _Signal*, float);
   float value;
+
+  float (*compute_period)(Signal*);
 };
 
 struct _SyncedSignal {
-  struct _Signal parent;
+  Signal parent;
   
-  void (*sync_function)(struct _SyncedSignal *, float);
-
-  float (*compute_period)(struct _SyncedSignal *);
+  void (*sync_function)(SyncedSignal*, float);
 
   float seconds_offset;
 };
@@ -86,6 +87,8 @@ struct _Mixer {
 SignalTable *
 signal_new_signal_table(int sample_rate);
 
+void signal_init(SignalTable *table, Signal *signal);
+
 void signal_add_to_collection(Signal ***collection, int *size, int *count, Signal *signal);
 
 void signal_destroy(Signal *signal);
@@ -117,6 +120,8 @@ WaveSignal *signal_new_sine_wave(SignalTable *table, float frequency, float ampl
 
 IntegralSignal *signal_new_integral_signal(SignalTable *table, float step, Signal *input_signal);
 
+void signal_mixer_init(Mixer *mixer);
+
 Mixer *signal_new_mixer(SignalTable *table);
 
 void signal_mixer_add_input_signal(Mixer *mixer, Signal *signal);
@@ -124,5 +129,11 @@ void signal_mixer_add_input_signal(Mixer *mixer, Signal *signal);
 void signal_mixer_remove_input_signal(Mixer *mixer, Signal *signal);
 
 void signal_mixer_set_master_amplitude(Mixer *mixer, float amplitude);
+
+Signal *signal_new_adapter(SignalTable *table);
+
+void signal_adapter_set_input(Signal *adapter, Signal *input);
+
+Signal *signal_adapter_get_input(Signal *adapter);
 
 #endif /* _SIGNAL_H_ */

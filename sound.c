@@ -7,6 +7,7 @@
 #include "sound.h"
 #include "signal.h"
 #include "ui.h"
+#include "delune-mixer.h"
 
 static struct SoundIo *soundio;
 static struct SoundIoDevice *device;
@@ -114,8 +115,7 @@ Sound *sound_create() {
   outstream->userdata = sound;
 
   sound->signal_table = signal_new_signal_table(outstream->sample_rate);
-  sound->master_out = signal_new_mixer(sound->signal_table);
-  sound->master_out->master_amplitude->value = .3;
+  sound->master_out = MIXER(delune_mixer_new(sound->signal_table));
   signal_set_name(SIGNAL(sound->master_out), "master out");
 
   if ((err = soundio_outstream_start(outstream))) {

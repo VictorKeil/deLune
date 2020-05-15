@@ -8,6 +8,16 @@
 #define DELUNE_SIGNAL_CHOOSER_TYPE (delune_signal_chooser_get_type())
 G_DECLARE_FINAL_TYPE(DeluneSignalChooser, delune_signal_chooser, DELUNE, SIGNAL_CHOOSER, GtkBox);
 
+struct _DeluneSignalChooser {
+  GtkBox base_widget;
+
+  GtkWidget *label;
+  GtkWidget *signal_curtain;
+  GtkWidget *value_scale;
+
+  GtkListStore *tracked_signals;
+};
+
 DeluneSignalChooser *delune_signal_chooser_new(GtkListStore *tracked_signals);
 
 void delune_signal_chooser_set_label(DeluneSignalChooser *chooser, char *label);

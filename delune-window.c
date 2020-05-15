@@ -16,7 +16,7 @@ struct _DeluneWindow {
   GtkWidget *signal_grid;
   GtkWidget *button_signal_new;
 
-  GtkWidget *output_signals_view;
+  GtkTreeView *output_signals_view;
   GtkTreeView *output_candidates_view;
   GtkWidget *master_amplitude;
 };
@@ -25,17 +25,17 @@ G_DEFINE_TYPE(DeluneWindow, delune_window, GTK_TYPE_APPLICATION_WINDOW);
 
 void on_signal_add_to_output(GtkTreeView *view, GtkTreePath *path, GtkTreeViewColumn *col, gpointer win_ptr) {
   DeluneWindow *win;
-  GtkTreeModel *model;
+  GtkTreeModel *filtered_model;
   GtkTreeIter iter;
+  GtkTreePath *path_to_signal;
   Signal *signal;
 
   win = DELUNE_WINDOW(win_ptr);
 
-  model = gtk_tree_view_get_model(view);
-  gtk_tree_model_get_iter(model, &iter, path);
-  gtk_tree_model_get(model, &iter, 0, &signal, -1);
+  filtered_model = gtk_tree_view_get_model(view);
+  path_to_signal = gtk_tree_model_filter_convert_path_to_child_path(GTK_TREE_MODEL_FILTER(filtered_model), path);
 
-  delune_signal_add_to_master_out(win->app, signal);
+  delune_signal_add_to_master_out(win->app, path_to_signal);
 }
 
 void on_signal_pressed_in_output(GtkTreeView *view, GtkTreePath *path, void *col, gpointer win_ptr) {
@@ -84,6 +84,7 @@ static void create_signal_component(DeluneWindow *win, Signal *signal) {
 
   component = delune_signal_component_new(DELUNE_WINDOW(win)->app, signal);
   gtk_container_add(GTK_CONTAINER(DELUNE_WINDOW(win)->signal_grid), GTK_WIDGET(component));
+  g_object_set(gtk_widget_get_parent(GTK_WIDGET(component)), "can-focus", FALSE, NULL);
 }
 
 void on_signal_new(GtkWidget *button, gpointer win) {
@@ -158,11 +159,15 @@ static void construct_ui(DeluneWindow *win) {
   // Setup master output signals view
   text_renderer = gtk_cell_renderer_text_new();
   gtk_tree_view_set_model(GTK_TREE_VIEW(win->output_signals_view), GTK_TREE_MODEL(win->app->master_out_signals));
-  gtk_tree_view_insert_column_with_data_func(
-      GTK_TREE_VIEW(win->output_signals_view), 0, "Output Signals",
-      text_renderer, delune_map_master_out_view_func, win->app,
-      NULL);
   gtk_tree_view_set_activate_on_single_click(GTK_TREE_VIEW(win->output_signals_view), TRUE);
+  gtk_tree_view_set_headers_visible(win->output_signals_view, FALSE);
+
+  col = gtk_tree_view_column_new();
+  gtk_tree_view_column_set_cell_data_func(col, text_renderer, delune_map_master_out_view_func, win->app, NULL);
+  gtk_tree_view_column_pack_start(col, text_renderer, TRUE);
+  gtk_tree_view_column_set_sizing(col, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
+
+  gtk_tree_view_append_column(win->output_signals_view, col);
 
   // Setup popup which lets user add signals to output
   filtered_out_signals = gtk_tree_model_filter_new(tracked_signals_model, NULL);
