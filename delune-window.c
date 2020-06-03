@@ -14,6 +14,8 @@ struct _DeluneWindow {
 
   GtkWidget *stack;
   GtkWidget *signal_grid;
+  GtkWidget *alloc_signals_view;
+  GtkWidget *alloc_signals_refresh;
   GtkWidget *button_signal_new;
 
   GtkTreeView *output_signals_view;
@@ -36,6 +38,32 @@ void on_signal_add_to_output(GtkTreeView *view, GtkTreePath *path, GtkTreeViewCo
   path_to_signal = gtk_tree_model_filter_convert_path_to_child_path(GTK_TREE_MODEL_FILTER(filtered_model), path);
 
   delune_signal_add_to_master_out(win->app, path_to_signal);
+}
+
+void on_alloc_signals_refresh(DeluneWindow *win) {
+  char row[512];
+  Signal **allocated_signals;
+  int n_allocated_signals;
+  GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(win->alloc_signals_view));
+  GtkTextIter start, end;
+
+  gtk_text_buffer_get_bounds(buf, &start, &end);
+  gtk_text_buffer_delete(buf, &start, &end);
+
+  allocated_signals = win->app->sound->signal_table->signals;
+  n_allocated_signals = win->app->sound->signal_table->signal_count;
+
+  const char *row_template = "signal #%d: %s\n\
+\tptr: %p\n\
+\tref count: %d\n\n";
+
+  int ref_count;
+  for (int i = 0; i < n_allocated_signals; i++) {
+    ref_count = SIGNAL(allocated_signals[i])->reference_count;
+    sprintf(row, row_template, i, signal_get_name(allocated_signals[i]), allocated_signals[i], ref_count);
+    g_print("%s", row);
+    gtk_text_buffer_insert(buf, &start, row, -1);
+  }
 }
 
 void on_signal_pressed_in_output(GtkTreeView *view, GtkTreePath *path, void *col, gpointer win_ptr) {
@@ -99,7 +127,10 @@ void update_signal_grid(DeluneWindow *win) {
 static void delune_window_init(DeluneWindow *win) {
   gtk_widget_init_template(GTK_WIDGET(win));
 
+  gtk_text_view_set_buffer(GTK_TEXT_VIEW(win->alloc_signals_view), gtk_text_buffer_new(NULL));
+
   g_signal_connect(win->button_signal_new, "clicked", G_CALLBACK(on_signal_new), win);
+  g_signal_connect_swapped(win->alloc_signals_refresh, "clicked", G_CALLBACK(on_alloc_signals_refresh), win);
   g_signal_connect(win->output_candidates_view, "row-activated", G_CALLBACK(on_signal_add_to_output), win);
   g_signal_connect(win->output_signals_view, "row-activated", G_CALLBACK(on_signal_pressed_in_output), win);
 }
@@ -110,6 +141,8 @@ static void delune_window_class_init(DeluneWindowClass *class) {
 
   gtk_widget_class_bind_template_child(GTK_WIDGET_CLASS(class), DeluneWindow, stack);
   gtk_widget_class_bind_template_child(GTK_WIDGET_CLASS(class), DeluneWindow, signal_grid);
+  gtk_widget_class_bind_template_child(GTK_WIDGET_CLASS(class), DeluneWindow, alloc_signals_view);
+  gtk_widget_class_bind_template_child(GTK_WIDGET_CLASS(class), DeluneWindow, alloc_signals_refresh);
   gtk_widget_class_bind_template_child(GTK_WIDGET_CLASS(class), DeluneWindow, output_signals_view);
   gtk_widget_class_bind_template_child(GTK_WIDGET_CLASS(class), DeluneWindow, output_candidates_view);
   gtk_widget_class_bind_template_child(GTK_WIDGET_CLASS(class), DeluneWindow, master_amplitude);

@@ -38,6 +38,7 @@ void signal_add_to_collection(Signal ***collection, int *size, int *count, Signa
 }
 
 void signal_table_add_signal(SignalTable *table, Signal *signal) {
+  fprintf(stderr, "added %p to signals\n", signal);
   signal_add_to_collection(&table->signals,
 		    &table->signals_len,
 		    &table->signal_count,
@@ -81,11 +82,14 @@ void signal_init(SignalTable *table, Signal *signal) {
 }
 
 void signal_destroy(Signal *signal) {
-  if (signal) {
-    signal_table_remove_signal(signal);
-    signal_table_remove_synced_signal(SYNCED_SIGNAL(signal));
-    free(signal);
+  if (!signal) {
+    fprintf(stderr, "signal error: signal null at destruction\n");
+    exit(1);
   }
+
+  signal_table_remove_signal(signal);
+  signal_table_remove_synced_signal(SYNCED_SIGNAL(signal));
+  free(signal);
 }
 
 void signal_set_name(Signal *signal, char *name) { signal->name = name; }
@@ -118,6 +122,7 @@ void signal_set_frequency(WaveSignal *signal, Signal *frequency, bool no_unref) 
   if (!no_unref)
     SIGNAL(signal->frequency)->reference_count--;
 
+  frequency->reference_count++;
   SIGNAL(signal->frequency)->input_signals[0] = frequency;
 }
 
@@ -125,17 +130,19 @@ Signal *signal_get_frequency(WaveSignal *signal) {
   return SIGNAL(signal->frequency)->input_signals[0];
 }
 
-void signal_set_amplitude(WaveSignal *signal, Signal *ampliutde, bool no_unref) {
+void signal_set_amplitude(WaveSignal *signal, Signal *amplitude, bool no_unref) {
   if (!no_unref)
     signal->amplitude->reference_count--;
 
-  signal->amplitude = ampliutde;
+  amplitude->reference_count++;
+  signal->amplitude = amplitude;
 }
 
 Signal *signal_get_amplitude(WaveSignal *signal) { return signal->amplitude; }
 
 void init_const_signal(ConstSignal *signal, float value) {
   signal->value = value;
+  signal_set_name(signal, "(const)");
 }
 
 ConstSignal *signal_new_const_signal(SignalTable *table, float value) {
@@ -175,6 +182,8 @@ IntegralSignal *signal_new_integral_signal(SignalTable *table, float step,
   SIGNAL(signal)->input_signals = calloc(1, sizeof(Signal *));
   signal_init(table, SIGNAL(signal));
 
+  signal_set_name(SIGNAL(signal), "(integral)");
+
   signal->dt = step;
   SIGNAL(signal)->function = integral_func;
   SIGNAL(signal)->input_signals[0] = input_signal;
@@ -203,6 +212,8 @@ void init_wave_signal(SignalTable *table, WaveSignal **signal, float frequency,
                       float amplitude) {
   *signal = calloc(1, sizeof(WaveSignal));
   signal_init(table, SIGNAL(*signal));
+
+  signal_set_name(SIGNAL(*signal), "(wave)");
 
   SIGNAL(*signal)->compute_period = wave_signal_period_func;
   SYNCED_SIGNAL(*signal)->sync_function = wave_signal_sync_func;
@@ -281,8 +292,12 @@ void signal_mixer_init(Mixer *mixer) {
              INIT_MIXER_INPUT_LEN);
   init_array((void *)&mixer->input_amplitudes, sizeof(Signal),
              INIT_MIXER_INPUT_LEN);
+  Signal *input_amp;
   for (int i = 0; i < INIT_MIXER_INPUT_LEN; i++) {
-    mixer->input_amplitudes[i] = signal_new_const_signal(SIGNAL(mixer)->table, 1);
+    input_amp = signal_new_const_signal(SIGNAL(mixer)->table, 1);
+    signal_set_name(input_amp, "(mixer input amp)");
+    input_amp->reference_count++;
+    mixer->input_amplitudes[i] = input_amp;
   }
 }
 
@@ -325,6 +340,8 @@ Signal *signal_new_adapter(SignalTable *table) {
   adapter = calloc(1, sizeof(SyncedSignal));
   signal_init(table, adapter);
 
+  signal_set_name(adapter, "(adapter)");
+
   adapter->input_signals = calloc(1, sizeof(Signal*));
   adapter->function = adapter_func;
   adapter->compute_period = signal_adapter_period_func;
@@ -333,6 +350,7 @@ Signal *signal_new_adapter(SignalTable *table) {
 }
 
 void signal_adapter_set_input(Signal *adapter, Signal *input) {
+  input->reference_count++;
   adapter->input_signals[0] = input;
 }
 

@@ -18,6 +18,7 @@ struct _DeluneSignalComponent {
   Signal *signal;
 
   GtkWidget *header;
+  GtkHeaderBar *header_bar;
   GtkWidget *waveform_curtain;
   GtkListBox *param_list;
   GtkWidget *value_scale, *value_spin_button;
@@ -88,9 +89,15 @@ static void on_name_changed(GtkWidget *buffer, gpointer component) {
   gtk_text_buffer_apply_tag_by_name(GTK_TEXT_BUFFER(buffer), "name_header", &start, &end);
 
   char *name;
+  int max_name_len = 80;
+  char *name_intern;
   g_object_get(buffer, "text", &name, NULL);
   //TODO: handle unicode characters
+  name_intern = malloc(max_name_len);
+  snprintf(name_intern, max_name_len, "%s (intern)", name);
+
   signal_set_name(DELUNE_SIGNAL_COMPONENT(component)->signal, name);
+  signal_set_name(signal_adapter_get_input(DELUNE_SIGNAL_COMPONENT(component)->signal), name_intern);
 }
 
 static void on_const_value_changed(GtkAdjustment *adj, DeluneSignalComponent *component) {

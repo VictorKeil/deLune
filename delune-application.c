@@ -71,6 +71,7 @@ Signal *delune_signal_new(DeluneApplication *app) {
   Signal *adapter, *signal;
 
   adapter = signal_new_adapter(app->sound->signal_table);
+  signal_set_name(adapter, "delune_adapter");
   signal = signal_new_const_signal(app->sound->signal_table, .5);
   signal_adapter_set_input(adapter, signal);
 
@@ -162,17 +163,17 @@ DeluneApplication *delune_application_new() {
   sig = delune_signal_new(app);
   signal_set_name(sig, "sine");
 
-  sig = delune_signal_new(app);
-  signal_set_name(sig, "sine-amp");
+  /* sig = delune_signal_new(app); */
+  /* signal_set_name(sig, "sine-amp"); */
 
-  sig = delune_signal_new(app);
-  signal_set_name(sig, "sine-freq");
+  /* sig = delune_signal_new(app); */
+  /* signal_set_name(sig, "sine-freq"); */
 
-  sig = delune_signal_new(app);
-  signal_set_name(sig, "sine-freq-freq");
+  /* sig = delune_signal_new(app); */
+  /* signal_set_name(sig, "sine-freq-freq"); */
 
-  sig = delune_signal_new(app);
-  signal_set_name(sig, "sine-freq-amp");
+  /* sig = delune_signal_new(app); */
+  /* signal_set_name(sig, "sine-freq-amp"); */
 
   g_signal_connect_swapped(app->master_out_signals, "row-changed", G_CALLBACK(sound_outstream_clear_buffer), app->sound);
   g_signal_connect_swapped(app->master_out_signals, "row-deleted", G_CALLBACK(sound_outstream_clear_buffer), app->sound);
